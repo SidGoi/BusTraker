@@ -3,9 +3,9 @@ import OSMMap from './OSMMap';
 
 export default function AdminLiveMap({ buses, mapRef, onBusPress }: any) {
   const getStatusColor = (lastUpdate?: string) => {
-    if (!lastUpdate) return '#64748b'; // Inactive - Grey
+    if (!lastUpdate) return '#64748b'; 
     const diff = (new Date().getTime() - new Date(lastUpdate).getTime()) / 60000;
-    return diff <= 3 ? '#10b981' : '#64748b'; // Emerald if Active, Grey if Inactive
+    return diff <= 3 ? '#10b981' : '#64748b';
   };
 
   const markers = buses
@@ -18,8 +18,24 @@ export default function AdminLiveMap({ buses, mapRef, onBusPress }: any) {
       color: getStatusColor(b.lastUpdate)
     }));
 
-  return <OSMMap ref={mapRef} markers={markers} onMarkerPress={(id: any) => {
+  const handleBusPress = (id: any) => {
     const bus = buses.find((b: any) => b.busId === id);
-    if (bus) onBusPress(bus);
-  }} />;
+    if (bus && bus.location) {
+      // animateToRegion handles disabling autoFit internally
+      mapRef.current?.animateToRegion({
+        latitude: bus.location[0],
+        longitude: bus.location[1],
+      });
+
+      if (onBusPress) onBusPress(bus);
+    }
+  };
+
+  return (
+    <OSMMap 
+      ref={mapRef} 
+      markers={markers} 
+      onMarkerPress={handleBusPress} 
+    />
+  );
 }
